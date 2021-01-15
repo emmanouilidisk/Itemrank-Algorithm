@@ -34,15 +34,16 @@ public:
 		// IR(t+1) = a * C * IR(t) + (1-a) * d
 		
         USER:for(int user = 0; user < n; user++) { //for each user
-        	// initialize buffer IR
-            IR_COL_INIT:for (int j = 0; j < n; j++) {
-                IR_col[j] = 1.0/m;
-            }
+        	
             // save initial_critics to buffer
          	BUFFER_INIT:for(int j = 0; j < m; j++) {
                 buffer_initial_critics[j] = initial_critics[j][user];
             }
-            TIME:for (int t = 0; t < max_iter; t++) { //for each time
+			// initialize buffer IR
+            IR_COL_INIT:for (int j = 0; j < n; j++) {
+                IR_col[j] = 1.0/m;
+            }
+            TIME:for(int t = 0; t < max_iter; t++) { //for each time
                 MOVIE:for(int i = 0; i < m; i++) { //for each movie
                     summation = 0;
                     INNER_PRODUCT: for(int j = 0; j < m; j++) {
@@ -97,4 +98,3 @@ CCS_MAIN(int argc, char* argv[]){
 
     CCS_RETURN(0);
 }
-

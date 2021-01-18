@@ -1,9 +1,14 @@
 1) IR_col is one column of size 1xm that maybe big. Same for buffer.
    Can we read and write to extrenal memory? Can we have one argument in the function that is input & output?
+   -> Δες παράδειγμα Queue - BFS (Μάθημα 9, Διαφάνεια 9)  
 2) We cannot do testing..is that a problem? We can test only if the algorithm converges but not the value of the solution.
-3) Unroll and pipeline --> by hand?
-4) Latency or Area? (3400 latency, 5500 area --> 4x4)
+   -> Απλά τεστ (μεγάλος γράφος, λιγα features και το ανάποδο)
+3) Unroll and pipeline 
+- https://www.xilinx.com/html_docs/xilinx2017_4/sdaccel_doc/uyd1504034366571.html
+- https://www.xilinx.com/html_docs/xilinx2017_4/sdaccel_doc/fde1504034360078.html
+4) 256 bits and best latency (3400 latency, 5500 area --> 4x4)
+5) summation must be changed!!
 
-5) Unroll all except from TIME, (INNER_PRODUCT ?)
+6) Unroll all except from TIME, (INNER_PRODUCT ?)
    TIME --> pipeline 3
    MOVIE --> unroll but increases area too much

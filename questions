@@ -15,6 +15,7 @@ Optimizations
    
    IR_COL_INIT --> partial unroll 2, pipeline 1
    WRITE_OUTPUT --> partial unroll 2, pipeline 1
+   UPDATE_IR --> partial unroll 2, pipeline 1
    
    USER --> no optimization
    if we do unroll 2 to user and pipeline to inner loops then we get more cycles(total thoughtput cycles: 2200)

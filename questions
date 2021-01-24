@@ -1,14 +1,21 @@
-1) IR_col is one column of size 1xm that maybe big. Same for buffer.
-   Can we read and write to extrenal memory? Can we have one argument in the function that is input & output?
-   -> Δες παράδειγμα Queue - BFS (Μάθημα 9, Διαφάνεια 9)  
-2) We cannot do testing..is that a problem? We can test only if the algorithm converges but not the value of the solution.
-   -> Απλά τεστ (μεγάλος γράφος, λιγα features και το ανάποδο)
-3) Unroll and pipeline 
+1) Testing
+2) Unroll and pipeline 
 - https://www.xilinx.com/html_docs/xilinx2017_4/sdaccel_doc/uyd1504034366571.html
 - https://www.xilinx.com/html_docs/xilinx2017_4/sdaccel_doc/fde1504034360078.html
-4) 256 bits and best latency (3400 latency, 5500 area --> 4x4)
-5) summation must be changed!!
 
-6) Unroll all except from TIME, (INNER_PRODUCT ?)
-   TIME --> pipeline 3
-   MOVIE --> unroll but increases area too much
+Optimizations
+  
+   INNER_PRODUCT --> partial unroll 2 + pipeline(II=1)  --> Throughput: 4006, Area: 5276
+   unroll more than 2 is not useful because we can read at most 2 values per cycle
+   
+   MOVIES --> pipeline 1
+   
+   TIME --> cannot be pipelined (TIME has 2 cycles (one that does MOVIES+UPDATE_IR and one that increments i for the loop)
+   TIME --> cannot be unrolled because we have dependency on data(and they cannot be paralleled)
+   
+   IR_COL_INIT --> partial unroll 2, pipeline 1
+   WRITE_OUTPUT --> partial unroll 2, pipeline 1
+   
+   USER --> no optimization
+   if we do unroll 2 to user and pipeline to inner loops then we get more cycles(total thoughtput cycles: 2200)
+   

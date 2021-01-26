@@ -142,36 +142,36 @@ void testing(){
 		    itemrank obj;
 		    obj.run(movies_correlation, initial_critics, IR_new, IR_col_pointer, IR_col_new_pointer);
 		    
+			//write to output file
+		    out << "Test No: "<< num_tests << "\n";
+		    for (int i=0; i<m; i++){   
+			    for (int j=0; j<m;j++){                      
+			        out << IR_new[i][j] << "\t";
+			    }
+			    out << "\n";
+			}
+			out << "\n";
+			out << " Max elements of every column: \n";
 		    //find max of every column and write to output file
 		    for (int i = 0; i < m; i++) { 
 			// initialize the maximum element 
 			// with 0 
 			int maxm = IR_new[0][i]; 
-
+			int row = 0;
 			// Run the inner loop for rows 
 			for (int j = 1; j < m; j++) { 
 			    // check if any element is greater  
 			    // than the maximum element 
 			    // of the column and replace it 
 			    if (IR_new[j][i] > maxm) 
+				row = j;
 				maxm = mat[j][i]; 
 			} 
 
 			// print the largest element of the column 
-			out << IR_new[i][j] << "\t";
-			out << "\n";
+			out << row << "\t";
 		    } 
 			out << "\n";
-			
-		    //write to output file
-		    out << "Test No: "<< num_tests << "\n";
-// 		    for (int i=0; i<m; i++){   
-// 			    for (int j=0; j<m;j++){                      
-// 			        out << IR_new[i][j] << "\t";
-// 			    }
-// 			    out << "\n";
-// 			}
-// 			out << "\n";
 		} 
     }
   //close files

@@ -47,9 +47,7 @@ public:
     itemrank() {
     	max_iter=20;
     	a=0.85;
-    	summation=0;   	
-        // initialize IR matrix
-       
+    	summation=0;  
     };
 
 	#pragma hls_design interface

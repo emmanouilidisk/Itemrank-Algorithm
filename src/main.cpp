@@ -36,7 +36,6 @@ class vector{
 class itemrank{
 private:
     int max_iter;
-    ac_fixed<total_num_digits,digits,false> a;
     ac_fixed<total_num_digits,digits,false> summation;
 public:
     // constructor

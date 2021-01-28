@@ -66,14 +66,9 @@ public:
             TIME:for(int t = 0; t < max_iter; t++) { //for each time
                 MOVIE:for(int i = 0; i < m; i++) { //for each movie
                 	summation = 0;
-                    //acc1 = 0;
-                    //acc2 = 0;
                     INNER_PRODUCT: for(int j = 0; j < m; j++) {
-                        //acc1 = acc2 + movies_correlation[i][j] * IR_col.read();
-                        //acc2 = acc1 + movies_correlation[i][j+1] * IR_col.read();
                         summation = summation + movies_correlation[i][j] * IR_col.read();
                     }
-                    //summation = acc1 + acc2;
                     IR_col_new.write(a * summation + (1-a)*initial_critics[i][user]); //rating of i-th movie of user
                 }
                 UPDATE_IR:for(int j = 0; j < m; j++) {

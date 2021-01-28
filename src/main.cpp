@@ -37,10 +37,7 @@ class itemrank{
 private:
     int max_iter;
     ac_fixed<total_num_digits,digits,false> a;
-    ac_fixed<total_num_digits,digits,false> summation, acc1, acc2;
-    ac_fixed<total_num_digits,digits,false> IR_col[m];
-    ac_fixed<total_num_digits,digits,false> IR_col_new[m];
-    ac_fixed<total_num_digits,digits,false> buffer_initial_critics[m];
+    ac_fixed<total_num_digits,digits,false> summation;
 public:
     // constructor
     itemrank() {

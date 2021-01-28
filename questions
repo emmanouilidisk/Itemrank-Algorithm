@@ -20,3 +20,6 @@ Optimizations
    USER --> no optimization
    if we do unroll 2 to user and pipeline to inner loops then we get more cycles(total thoughtput cycles: 2200)
    
+   Time, Movie --> ii=1
+   interleaving ή αυξανω πλατος της λεξης-->64 παιρνουμε 4 x 16 καθε φορα
+   ολο ειναι full unroll

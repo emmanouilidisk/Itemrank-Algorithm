@@ -8,6 +8,7 @@ int main()
 	
 	int movies_correlation[4][4] = {{1,2,3,4},{15,12,13,11},{25,1,2,11},{11,14,7,3}};
 	int new_movies_correlation[4][4] = {0};
+	int index[4][4] = {0};
 	
 	int m=4;
 	int n=4;
@@ -30,8 +31,10 @@ int main()
     					for(int s=max_numbers-1; s>=b+1; s--)
     					{
     						new_movies_correlation[w][s] = new_movies_correlation[w][s-1];
+    						index[w][s] = index[w][s-1];
 						}
     					new_movies_correlation[w][b] = temp;
+    					index[w][b] = e;
 						
 						break;	   						
 					}
@@ -44,6 +47,15 @@ int main()
 	for(int i = 0; i < m; i++){
         for(int j = 0; j < n; j++){
             cout << new_movies_correlation[i][j] << " ";
+        }
+        cout << "\n";
+    }
+    
+    cout << "\n index \n";
+    
+    for(int i = 0; i < m; i++){
+        for(int j = 0; j < n; j++){
+            cout << index[i][j] << " ";
         }
         cout << "\n";
     }

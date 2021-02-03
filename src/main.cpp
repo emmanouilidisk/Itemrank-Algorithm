@@ -19,7 +19,7 @@ class inner_product_2users{
 			summation1_u2 = 0;
 			summation2_u2 = 0;
 		}
-		void inner_product_4elements(ac_fixed<total_num_digits,digits,false> mov1, ac_fixed<total_num_digits,digits,false> mov2, ac_fixed<total_num_digits,digits,false> IR_col1, ac_fixed<total_num_digits,digits,false> IR_col2) {  
+		void inner_product_4elements(data_type mov1[4], data_type mov2[4], data_type IR_col1[4], data_type IR_col2[4]) {  
 			for(int i = 0; i < 4; i++){
 				summation1_u1 += mov1[i] * IR_col1[i];
 				summation2_u1 += mov2[i] * IR_col1[i];
@@ -27,7 +27,7 @@ class inner_product_2users{
 				summation2_u2 += mov2[i] * IR_col2[i];
 			}
 		} 
-		void run(data_type mov1, data_type mov2, data_type mov3, data_type mov4, data_type IR_col1, data_type IR_col2, data_type IR_col3, data_type IR_col4, data_type &output1, data_type &output2, data_type &output3, data_type &output4) { 
+		void run(data_type mov1[4], data_type mov2[4], data_type mov3[4], data_type mov4[4], data_type IR_col1[4], data_type IR_col2[4], data_type IR_col3[4], data_type IR_col4[4], data_type &output1, data_type &output2, data_type &output3, data_type &output4) { 
 			
 			// compute partial inner product
 			inner_product_4elements(mov1, mov2, IR_col1, IR_col2);
@@ -52,7 +52,7 @@ private:
     data_type IR_col_new_u1[m], IR_col_new_u2[m], IR_col_new_u3[m], IR_col_new_u4[m];
     data_type IR_col_u1v1[4], IR_col_u1v2[4], IR_col_u2v1[4], IR_col_u2v2[4], IR_col_u3v1[4], IR_col_u3v2[4] , IR_col_u4v1[4], IR_col_u4v2[4];
     data_type output1, output2, output3, output4, output5, output6, output7, output8;
-    data_type mov1, mov2, mov3, mov4;
+    data_type mov1[4], mov2[4], mov3[4], mov4[4];
 public:
     // constructor
     itemrank() {
@@ -99,10 +99,10 @@ public:
                 		//preprocessing
                 		for(int iter=0; iter < 4; iter++){
                 			//movies
-                			mov1 = movies_correlation[i][iter];
-                			mov2 = movies_correlation[i+1][iter];
-                			mov3 = movies_correlation[i][iter+4];
-                			mov4 = movies_correlation[i+1][iter+4];
+                			mov1[iter] = movies_correlation[i][iter];
+                			mov2[iter] = movies_correlation[i+1][iter];
+                			mov3[iter] = movies_correlation[i][iter+4];
+                			mov4[iter] = movies_correlation[i+1][iter+4];
                 			//IR_col
                 			IR_col_u1v1[iter] = IR_col_u1[iter];
 							IR_col_u1v2[iter] = IR_col_u1[iter+4];
@@ -131,14 +131,14 @@ public:
 						summation8 += output8;
 					}
                     
-                    IR_col_new_u1[i] = a * summation1 + (1-a)*initial_critics[i][user]; //rating of i-th movie of user
-                    IR_col_new_u1[i+1] = a * summation2 + (1-a)*initial_critics[i+1][user]; //rating of i-th movie of user
-                    IR_col_new_u2[i] = a * summation3 + (1-a)*initial_critics[i][user+1]; //rating of i-th movie of user
-                    IR_col_new_u2[i+1] = a * summation4 + (1-a)*initial_critics[i+1][user+1]; //rating of i-th movie of user
-                    IR_col_new_u3[i] = a * summation5 + (1-a)*initial_critics[i][user+2]; //rating of i-th movie of user
-                    IR_col_new_u3[i+1] = a * summation6 + (1-a)*initial_critics[i+1][user+2]; //rating of i-th movie of user
-                    IR_col_new_u4[i] = a * summation7 + (1-a)*initial_critics[i][user+3]; //rating of i-th movie of user
-                    IR_col_new_u4[i+1] = a * summation8 + (1-a)*initial_critics[i+1][user+3]; //rating of i-th movie of user
+                    IR_col_new_u1[i]   = a * summation1 + (1-a)*initial_critics[i][user];       //rating of i-th movie of user 1
+                    IR_col_new_u1[i+1] = a * summation2 + (1-a)*initial_critics[i+1][user];     //rating of i+1-th movie of user 1
+                    IR_col_new_u2[i]   = a * summation3 + (1-a)*initial_critics[i][user+1];     //rating of i-th movie of user 2
+                    IR_col_new_u2[i+1] = a * summation4 + (1-a)*initial_critics[i+1][user+1];   //rating of i+1-th movie of user 2
+                    IR_col_new_u3[i]   = a * summation5 + (1-a)*initial_critics[i][user+2];     //rating of i-th movie of user 3 
+                    IR_col_new_u3[i+1] = a * summation6 + (1-a)*initial_critics[i+1][user+2];   //rating of i+1-th movie of user 3
+                    IR_col_new_u4[i]   = a * summation7 + (1-a)*initial_critics[i][user+3];     //rating of i-th movie of user 4
+                    IR_col_new_u4[i+1] = a * summation8 + (1-a)*initial_critics[i+1][user+3];   //rating of i+1-th movie of user 4
                 }
                 
                 UPDATE_IR:for(int j = 0; j < m; j++) {
@@ -164,19 +164,19 @@ int main(){
 
 
 	// define arrays used in program
-    ac_fixed<total_num_digits,digits,false> IR_old[m][n], IR_new[m][n];
-    ac_fixed<total_num_digits,digits,false> movies_correlation[m][m]= { // denoted in the paper as C
+    data_type IR_old[m][n], IR_new[m][n];
+    data_type movies_correlation[m][m]= { // denoted in the paper as C
 	        {   0.0,  1.0/9, 2.0/14, 1.0/15, 3.0/25, 4.0/17, 1.0, 2.0},
 	        {1.0/14,    0.0, 1.0/14, 1.0/15, 1.0/25, 1.0/17, 1.0, 3.0},
 	        {2.0/14,  1.0/9,    0.0, 2.0/15, 3.0/25, 2.0/17, 2.0, 2.0},
 	        {1.0/14,  1.0/9, 2.0/14,    0.0, 3.0/25, 4.0/17, 1.0, 2.0},
 	        {3.0/14,  1.0/9, 3.0/14, 3.0/15,    0.0, 3.0/17, 7.0, 3.0},
 	        {4.0/14,  1.0/9, 2.0/14, 4.0/15, 3.0/25,    0.0, 1.0, 1.0},
-	        {1.0/14,  1.0/9, 2.0/14, 1.0/15, 7.0/25, 1.0/17,   0.0, 2.0},
-	        {2.0/14,  3.0/9, 2.0/14, 2.0/15, 3.0/25, 1.0/17, 2.0,   0.0},
+	        {1.0/14,  1.0/9, 2.0/14, 1.0/15, 7.0/25, 1.0/17, 0.0, 2.0},
+	        {2.0/14,  3.0/9, 2.0/14, 2.0/15, 3.0/25, 1.0/17, 2.0, 0.0},
 	};
 	//normalized movies ratings
-	ac_fixed<total_num_digits,digits,false> initial_critics[m][n]= { //array with columns the vector d of each user
+	data_type initial_critics[m][n]= { //array with columns the vector d of each user
 	        {1.0/7, 5.0/12,   0/14, 4.0/11, 1.0/7, 5.0/10,   0/9, 4.0/11},
 	        {1.0/7, 0.0/12, 4.0/14, 1.0/11, 1.0/7, 0.0/10, 4.0/9, 1.0/11},
 	        {4.0/7, 5.0/12, 3.0/14, 1.0/11, 0.0/7, 3.0/10, 1.0/9, 1.0/11},

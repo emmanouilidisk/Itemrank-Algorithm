@@ -6,7 +6,7 @@
 
 const int m = 8; // number of movies
 const int n = 8; // number of users
-const int digits = 2; //number of digits of integer part
+const int digits = 1; //number of digits of integer part
 const int total_num_digits = 16; //total number of digits
 typedef ac_fixed<total_num_digits,digits,false> data_type;
 
@@ -203,16 +203,16 @@ class inner_product_2users{
 #pragma hls_design top
 class itemrank{
 private:
-    int max_iter;
-    int k = 4; //how many elements to keep when making matrices sparce
+    int max_iter, index,ind1, ind2;
+    int k; //how many elements to keep when making matrices sparce
+    int max_elem_indices[4];
+    data_type max_elem[4];
     data_type a;
-    data_type summation[8];
+    data_type summation[8], output[8];
     data_type IR_col_u1[m], IR_col_u2[m], IR_col_u3[m], IR_col_u4[m];
     data_type IR_col_new_u1[m], IR_col_new_u2[m], IR_col_new_u3[m], IR_col_new_u4[m];
     data_type IR_col_u1v1[4], IR_col_u1v2[4], IR_col_u2v1[4], IR_col_u2v2[4], IR_col_u3v1[4], IR_col_u3v2[4] , IR_col_u4v1[4], IR_col_u4v2[4];
-    data_type output[8];
     data_type mov1[4], mov2[4], mov3[4], mov4[4];
-    int ind1, ind2;
     MinHeap sparse_movies[m]; 
 	MinHeap sparse_critics[n];
 public:
@@ -223,6 +223,7 @@ public:
     	for(int v=0; v < 8; v++){
 			summation[v] = 0;
 		}
+		k = 4;
     };
     
     void preprocessing(data_type movies_correlation[m][n], data_type initial_critics[m][n]){
@@ -252,32 +253,68 @@ public:
 		
 	}
 
-
+	int binarySearch(int x, int user) 
+	{ 
+		int l = 0;
+		int r = k;
+	    while (l <= r) { 
+	        int mean = l + (r - l) / 2; 
+	  
+	        // Check if x is present at mid 
+	        if (sparse_critics[user].getIndices()[mean] == x) 
+	            return mean; 
+	  
+	        // If x greater, ignore left half 
+	        if (sparse_critics[user].getIndices()[mean] < x) 
+	            l = mean + 1; 
+	  
+	        // If x is smaller, ignore right half 
+	        else
+	            r = mean - 1; 
+	    } 
+	  
+	    // if we reach here, then element was 
+	    // not present 
+	    return -1; 
+	} 
+	
+	
 	#pragma hls_design interface
-    void run (data_type movies_correlation[m][n],data_type initial_critics[m][n],data_type IR_output[m][n]){
+    void run (data_type movies_correlation[m][n],data_type initial_critics[m][n],int* IR_output, int num_users, int* users_to_be_computed){
 		
 		//preprocessing for sparcity
+		k = 1024;
+		if(m <= k) {
+			k = m;
+		}
 		preprocessing(movies_correlation, initial_critics);
 		
-         USER:for(int user = 0; user < n; user = user + 4) { //for each user
+		std::cout << "\n";
+		int num_users_to_be_computed = ((num_users / 4) + 1) * 4;
+		int mod_users = num_users % 4;
+         USER:for(int user = 0; user < num_users_to_be_computed; user = user + 4) { //for each user
         	// initialize IR
-            IR_COL_INIT:for (int j = 0; j < n; j++) {
+            IR_COL_INIT:for (int j = 0; j < m; j++) {
                 IR_col_u1[j] = 1.0/m;
                 IR_col_u2[j] = 1.0/m;
                 IR_col_u3[j] = 1.0/m;
                 IR_col_u4[j] = 1.0/m;
             }
-
+			for(int v=0; v < 8; v++){
+				output[v] = 0;
+				summation[v] = 0;
+			}
             TIME:for (int t = 0; t < max_iter; t++) { //for each time
-            
+            	
+            	
                 MOVIE:for(int i = 0; i < m; i = i + 2) { //for each movie
                 	
 					//create pointers used in object inner_product_2users
 					for(int v=0; v < 8; v++){
-						output[v] = 0;
+						summation[v] = 0;
 					}
 						
-                    COLS: for(int j = 0; j < 1000; j = j + 4){
+                    COLS: for(int j = 0; j < k/8; j = j + 4){
                     	
                 		//preprocessing
                 		for(int iter=0; iter < 4; iter++){
@@ -286,9 +323,9 @@ public:
                 			mov2[iter] = sparse_movies[i+1].getHeap()[iter];
                 			mov3[iter] = sparse_movies[i].getHeap()[iter+4];
                 			mov4[iter] = sparse_movies[i+1].getHeap()[iter+4];
-                			//IR_col
-                			ind1 = sparse_movies[i].getIndices()[4*j+iter];
-                			ind2 = sparse_movies[i].getIndices()[4*(j+1)+iter];
+					        //IR_col
+                			ind1 = sparse_movies[i].getIndices()[2*j+iter];
+                			ind2 = sparse_movies[i].getIndices()[2*(j+2)+iter];
                 			IR_col_u1v1[iter] = IR_col_u1[ind1];
 							IR_col_u1v2[iter] = IR_col_u1[ind2];
 							IR_col_u2v1[iter] = IR_col_u2[ind1];
@@ -298,7 +335,6 @@ public:
 							IR_col_u4v1[iter] = IR_col_u4[ind1];
 							IR_col_u4v2[iter] = IR_col_u4[ind2];
 						}
-						
 						//create objects and call run()
                     	inner_product_2users obj1;
                     	inner_product_2users obj2;
@@ -310,15 +346,40 @@ public:
 							summation[v] += output[v];
 						}
 					}
+					
+                    index = binarySearch(i,user);
+                    if(index != -1) IR_col_new_u1[i]   = a * summation[0] + (1-a)*sparse_critics[user].getHeap()[index];       //rating of i-th movie of user 1
+                    else IR_col_new_u1[i] = a * summation[0];
                     
-                    IR_col_new_u1[i]   = a * summation[0] + (1-a)*initial_critics[i][user];       //rating of i-th movie of user 1
-                    IR_col_new_u1[i+1] = a * summation[1] + (1-a)*initial_critics[i+1][user];     //rating of i+1-th movie of user 1
-                    IR_col_new_u2[i]   = a * summation[2] + (1-a)*initial_critics[i][user+1];     //rating of i-th movie of user 2
-                    IR_col_new_u2[i+1] = a * summation[3] + (1-a)*initial_critics[i+1][user+1];   //rating of i+1-th movie of user 2
-                    IR_col_new_u3[i]   = a * summation[4] + (1-a)*initial_critics[i][user+2];     //rating of i-th movie of user 3 
-                    IR_col_new_u3[i+1] = a * summation[5] + (1-a)*initial_critics[i+1][user+2];   //rating of i+1-th movie of user 3
-                    IR_col_new_u4[i]   = a * summation[6] + (1-a)*initial_critics[i][user+3];     //rating of i-th movie of user 4
-                    IR_col_new_u4[i+1] = a * summation[7] + (1-a)*initial_critics[i+1][user+3];   //rating of i+1-th movie of user 4
+                    
+                    index = binarySearch(i+1,user);
+                    if(index != -1) IR_col_new_u1[i+1] = a * summation[1] + (1-a)*sparse_critics[user].getHeap()[index];     //rating of i+1-th movie of user 1
+                    else IR_col_new_u1[i+1] = a * summation[1];
+                    
+                    index = binarySearch(i,user+1);
+                    if(index != -1) IR_col_new_u2[i]   = a * summation[2] + (1-a)*sparse_critics[user+1].getHeap()[index];     //rating of i-th movie of user 2
+                    else IR_col_new_u2[i] = a * summation[2];
+                    
+                    index = binarySearch(i+1,user+1);
+                    if(index != -1) IR_col_new_u2[i+1] = a * summation[3] + (1-a)*sparse_critics[user+1].getHeap()[index];   //rating of i+1-th movie of user 2
+                    else IR_col_new_u2[i+1] = a * summation[3];
+                    
+                    index = binarySearch(i,user+2);
+                    if(index != -1) IR_col_new_u3[i]   = a * summation[4] + (1-a)*sparse_critics[user+2].getHeap()[index];     //rating of i-th movie of user 3 
+                    else IR_col_new_u3[i] = a * summation[4];
+                    
+                    index = binarySearch(i+1,user+2);
+                    if(index != -1) IR_col_new_u3[i+1] = a * summation[5] + (1-a)*sparse_critics[user+2].getHeap()[index];   //rating of i+1-th movie of user 3
+                    else IR_col_new_u3[i+1] = a * summation[5];
+                    
+                    index = binarySearch(i,user+3);
+                    if(index != -1) IR_col_new_u4[i] = a * summation[6] + (1-a)*sparse_critics[user+3].getHeap()[index];     //rating of i-th movie of user 4
+                    else IR_col_new_u4[i] = a * summation[6];
+                    
+                    index = binarySearch(i+1,user+3);
+                    if(index != -1) IR_col_new_u4[i+1] = a * summation[7] + (1-a)*sparse_critics[user+3].getHeap()[index];   //rating of i+1-th movie of user 4
+                    else IR_col_new_u4[i+1] = a * summation[7];
+                    
                 }
                 
                 UPDATE_IR:for(int j = 0; j < m; j++) {
@@ -329,12 +390,38 @@ public:
                 }
             }
             // write to output
+            for(int i = 0; i < 4; i++){
+            	max_elem[i] = 0;
+			}
             WRITE_OUTPUT:for(int i = 0; i < m; i++){
-                IR_output[i][user] = IR_col_u1[i];
-                IR_output[i][user+1] = IR_col_u2[i];
-                IR_output[i][user+2] = IR_col_u3[i];
-                IR_output[i][user+3] = IR_col_u4[i];
+            	if(IR_col_u1[i] > max_elem[0] && initial_critics[i][user]==0) {
+            		max_elem[0] = IR_col_u1[i];
+            		max_elem_indices[0] = i; 
+				}
+            	if(IR_col_u2[i] > max_elem[1] && initial_critics[i][user+1]==0){
+            		max_elem[1] = IR_col_u2[i];
+            		max_elem_indices[1] = i; 
+				} 
+            	if(IR_col_u3[i] > max_elem[2] && initial_critics[i][user+2]==0) {
+            		max_elem[2] = IR_col_u3[i];
+            		max_elem_indices[2] = i;
+				}
+            	if(IR_col_u4[i] > max_elem[3] && initial_critics[i][user+3]==0){
+            		max_elem[3] = IR_col_u4[i];
+            		max_elem_indices[3] = i;
+				} 
             }
+            if(user < num_users_to_be_computed-4){
+	            IR_output[user] = max_elem_indices[0];
+	            IR_output[user+1] = max_elem_indices[1];
+	            IR_output[user+2] = max_elem_indices[2];
+	            IR_output[user+3] = max_elem_indices[3];
+        	}
+        	else{
+        		for(int o=0; o<mod_users; o++){
+        			IR_output[user+o] = max_elem_indices[o];
+				}
+			}
         }
     }
 };
@@ -344,42 +431,40 @@ int main(){
 
 
 	// define arrays used in program
-    data_type IR_old[m][n], IR_new[m][n];
     data_type movies_correlation[m][m]= { // denoted in the paper as C
-	        {   0.0,  1.0/9, 2.0/14, 1.0/15, 3.0/25, 4.0/17, 1.0, 2.0},
-	        {1.0/14,    0.0, 1.0/14, 1.0/15, 1.0/25, 1.0/17, 1.0, 3.0},
-	        {2.0/14,  1.0/9,    0.0, 2.0/15, 3.0/25, 2.0/17, 2.0, 2.0},
-	        {1.0/14,  1.0/9, 2.0/14,    0.0, 3.0/25, 4.0/17, 1.0, 2.0},
-	        {3.0/14,  1.0/9, 3.0/14, 3.0/15,    0.0, 3.0/17, 7.0, 3.0},
-	        {4.0/14,  1.0/9, 2.0/14, 4.0/15, 3.0/25,    0.0, 1.0, 1.0},
-	        {1.0/14,  1.0/9, 2.0/14, 1.0/15, 7.0/25, 1.0/17, 0.0, 2.0},
-	        {2.0/14,  3.0/9, 2.0/14, 2.0/15, 3.0/25, 1.0/17, 2.0, 0.0},
+	        {   0.0,  1.0/9, 2.0/14, 1.0/14, 3.0/19, 4.0/18, 1.0/13.0, 2.0/15.0},
+	        {1.0/14,    0.0, 1.0/14, 1.0/14, 1.0/19, 1.0/18, 1.0/13.0, 3.0/15.0},
+	        {2.0/14,  1.0/9,    0.0, 2.0/14, 3.0/19, 2.0/18, 2.0/13.0, 2.0/15.0},
+	        {1.0/14,  1.0/9, 2.0/14,    0.0, 3.0/19, 4.0/18, 1.0/13.0, 2.0/15.0},
+	        {3.0/14,  1.0/9, 3.0/14, 3.0/14,    0.0, 3.0/18, 3.0/13.0, 3.0/15.0},
+	        {4.0/14,  1.0/9, 2.0/14, 4.0/14, 3.0/19,    0.0, 3.0/13.0, 1.0/15.0},
+	        {1.0/14,  1.0/9, 2.0/14, 1.0/14, 3.0/19, 3.0/18, 0.0/13.0, 2.0/15.0},
+	        {2.0/14,  3.0/9, 2.0/14, 2.0/14, 3.0/19, 1.0/18, 2.0/13.0, 0.0/15.0},
 	};
 	//normalized movies ratings
-	data_type initial_critics[m][n]= { //array with columns the vector d of each user
-	        {1.0/7, 5.0/12,   0/14, 4.0/11, 1.0/7, 5.0/10,   0/9, 4.0/11},
-	        {1.0/7, 0.0/12, 4.0/14, 1.0/11, 1.0/7, 0.0/10, 4.0/9, 1.0/11},
-	        {4.0/7, 5.0/12, 3.0/14, 1.0/11, 0.0/7, 3.0/10, 1.0/9, 1.0/11},
-	        {0.0/7, 0.0/12, 1.0/14, 0.0/11, 1.0/7, 0.0/10, 1.0/9, 1.0/11},
-	        {0.0/7, 1.0/12, 1.0/14, 3.0/11, 0.0/7, 1.0/10, 1.0/9, 1.0/11},
-	        {1.0/7, 0.0/12, 4.0/14, 2.0/11, 1.0/7, 0.0/10, 0.0/9, 1.0/11},
-	        {0.0/7, 1.0/12, 2.0/14, 0.0/11, 2.0/7, 1.0/10, 2.0/9, 1.0/11},
-	        {0.0/7, 0.0/12, 0.0/14, 0.0/11, 1.0/7, 0.0/10, 0.0/9, 1.0/11},
+	data_type initial_critics[m][n] = { //array with columns the vector d of each user
+	        {1.0/7, 5.0/12,   0/15, 4.0/11, 1.0/7, 5.0/10,  0.0/9, 4.0/9},
+	        {1.0/7, 0.0/12, 4.0/15, 1.0/11, 1.0/7, 0.0/10, 4.0/9, 1.0/9},
+	        {4.0/7, 5.0/12, 3.0/15, 1.0/11, 0.0/7, 3.0/10, 1.0/9, 1.0/9},
+	        {0.0/7, 0.0/12, 1.0/15, 3.0/11, 1.0/7, 0.0/10, 1.0/9, 1.0/9},
+	        {0.0/7, 1.0/12, 1.0/15, 0.0/11, 0.0/7, 1.0/10, 1.0/9, 1.0/9},
+	        {1.0/7, 0.0/12, 4.0/15, 2.0/11, 1.0/7, 0.0/10, 0.0/9, 1.0/9},
+	        {0.0/7, 1.0/12, 2.0/15, 0.0/11, 2.0/7, 1.0/10, 2.0/9, 0.0/9},
+	        {0.0/7, 0.0/12, 0.0/15, 0.0/11, 1.0/7, 0.0/10, 0.0/9, 0.0/9},
 	};
-
+	
+    int IR_new[5];
+	int num_users = 5;
+	int users[5] = {0,1,2,3,4};
 	
     // create object and run Itemrank algorithm
     itemrank obj;
-//    obj.preprocessing(movies_correlation,initial_critics);
-    obj.run(movies_correlation,initial_critics,IR_new);
+    obj.run(movies_correlation,initial_critics,IR_new,num_users,users);
 
-//    // print results
-//    for(int i = 0; i < m; i++){
-//        for(int j = 0; j < n; j++){
-//            std::cout << IR_new[i][j] << " ";
-//        }
-//        std::cout << "\n";
-//    }
+    // print results
+    for(int j = 0; j < num_users; j++){
+        std::cout << IR_new[j] << " ";
+    }
 
 
    return(0);

@@ -5,7 +5,7 @@
 
 
 const int m = 8; // number of movies
-const int n = 8; // number of users
+const int n = 5; // number of users
 const int digits = 1; //number of digits of integer part
 const int total_num_digits = 16; //total number of digits
 typedef ac_fixed<total_num_digits,digits,false> data_type;
@@ -226,7 +226,7 @@ public:
 		k = 4;
     };
     
-    void preprocessing(data_type movies_correlation[m][n], data_type initial_critics[m][n]){
+    void preprocessing(data_type movies_correlation[m][m], data_type initial_critics[m][n]){
     
 		//First k elements
 		//sparse movies
@@ -280,7 +280,7 @@ public:
 	
 	
 	#pragma hls_design interface
-    void run (data_type movies_correlation[m][n],data_type initial_critics[m][n],int* IR_output, int num_users, int* users_to_be_computed){
+    void run (data_type movies_correlation[m][m], data_type initial_critics[m][n], int* IR_output, int* users_to_be_computed){
 		
 		//preprocessing for sparcity
 		k = 1024;
@@ -290,8 +290,8 @@ public:
 		preprocessing(movies_correlation, initial_critics);
 		
 		std::cout << "\n";
-		int num_users_to_be_computed = ((num_users / 4) + 1) * 4;
-		int mod_users = num_users % 4;
+		int num_users_to_be_computed = ((n / 4) + 1) * 4;
+		int mod_users = n % 4;
          USER:for(int user = 0; user < num_users_to_be_computed; user = user + 4) { //for each user
         	// initialize IR
             IR_COL_INIT:for (int j = 0; j < m; j++) {
@@ -442,7 +442,7 @@ int main(){
 	        {2.0/14,  3.0/9, 2.0/14, 2.0/14, 3.0/19, 1.0/18, 2.0/13.0, 0.0/15.0},
 	};
 	//normalized movies ratings
-	data_type initial_critics[m][n] = { //array with columns the vector d of each user
+	data_type initial_critics[m][8] = { //array with columns the vector d of each user
 	        {1.0/7, 5.0/12,   0/15, 4.0/11, 1.0/7, 5.0/10,  0.0/9, 4.0/9},
 	        {1.0/7, 0.0/12, 4.0/15, 1.0/11, 1.0/7, 0.0/10, 4.0/9, 1.0/9},
 	        {4.0/7, 5.0/12, 3.0/15, 1.0/11, 0.0/7, 3.0/10, 1.0/9, 1.0/9},
@@ -453,16 +453,22 @@ int main(){
 	        {0.0/7, 0.0/12, 0.0/15, 0.0/11, 1.0/7, 0.0/10, 0.0/9, 0.0/9},
 	};
 	
-    int IR_new[5];
-	int num_users = 5;
-	int users[5] = {0,1,2,3,4};
+    int IR_new[n];
+	int users[n] = {0,1,2,3,4};
+	data_type critics[m][n];
+	
+	for(int i=0; i<m; i++){
+		for(int j=0; j<n; j++){
+			critics[i][j] = initial_critics[i][users[j]];
+		}
+	}
 	
     // create object and run Itemrank algorithm
     itemrank obj;
-    obj.run(movies_correlation,initial_critics,IR_new,num_users,users);
+    obj.run(movies_correlation,critics,IR_new,users);
 
     // print results
-    for(int j = 0; j < num_users; j++){
+    for(int j = 0; j < n; j++){
         std::cout << IR_new[j] << " ";
     }
 

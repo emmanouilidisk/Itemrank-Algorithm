@@ -226,7 +226,7 @@ public:
 		k = 4;
     };
     
-    void preprocessing(data_type movies_correlation[m][m], data_type initial_critics[m][n]){
+    void CCS_BLOCK(preprocessing) (data_type movies_correlation[m][m], data_type initial_critics[m][n]){
     
 		//First k elements
 		//sparse movies
@@ -280,7 +280,7 @@ public:
 	
 	
 	#pragma hls_design interface
-    void run (data_type movies_correlation[m][m], data_type initial_critics[m][n], int* IR_output, int* users_to_be_computed){
+    void CCS_BLOCK(run) (data_type movies_correlation[m][m], data_type initial_critics[m][n], int* IR_output, int* users_to_be_computed){
 		
 		//preprocessing for sparcity
 		k = 1024;
@@ -427,7 +427,7 @@ public:
 };
 
 
-int main(){
+CCS_MAIN(int argc, *char argv){
 
 
 	// define arrays used in program
@@ -473,5 +473,5 @@ int main(){
     }
 
 
-   return(0);
+   CCS_RETURN(0);
 }

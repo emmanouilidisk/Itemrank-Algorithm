@@ -4,11 +4,11 @@
 #include "ac_fixed.h"
 
 
-const int m = 1000; // number of movies
-const int n = 10000; // number of users
+const int m = 8; // number of movies
+const int n = 8; // number of users
 const int digits = 3; //number of digits of integer part
 const int total_num_digits = 16; //total number of digits
-const int num_elements = 64;
+const int num_elements = 8;
 typedef ac_fixed<total_num_digits,digits,false> data_type;
 	
 
@@ -227,11 +227,16 @@ public:
     
 		//First k elements
 		//sparse movies
+		
 		for(int i = 0; i < m; i++){
+			data_type temp_arr[m];
+			for(int ii = 0; ii < m; ii++){
+				temp_arr[ii] = movies_correlation[i][ii];
+			}
 			// Creating Min Heap for given
-			MinHeap mheap(num_elements, movies_correlation[i]);
+			MinHeap mheap(num_elements, temp_arr);
 			
-			mheap.findkBiggest(num_elements, movies_correlation[i]);
+			mheap.findkBiggest(num_elements, temp_arr);
 			sparse_movies[i] = mheap;
 		}
 	}
@@ -443,9 +448,8 @@ int main(){
 	for(int i = 0; i < m; ++i) {
     movies_correlation[i] = new data_type[n];
 	} */
-	
 	//commented this
-	
+	/*
 	static data_type movies_correlation[m][m];
 	static data_type initial_critics[m][n];	
 	
@@ -478,7 +482,7 @@ int main(){
 			initial_critics[1][b] = 0;
 		}
 	
-	/*
+	*/
 	// define arrays used in program
      data_type movies_correlation[m][m]= { // denoted in the paper as C
 	        {   0.0,  1.0/9, 2.0/14, 1.0/14, 3.0/19, 4.0/18, 1.0/13.0, 2.0/15.0},
@@ -501,7 +505,7 @@ int main(){
 	        {0.0/7, 1.0/12, 2.0/15, 0.0/11, 4.0/7, 1.0/12, 2.0/15, 5.0/11},
 	        {0.0/7, 0.0/12, 0.0/15, 0.0/11, 4.0/7, 0.0/12, 0.0/15, 5.0/11},
 	};  
-	*/
+	
     int IR_new[n];
     // create object and run Itemrank algorithm
     itemrank obj;

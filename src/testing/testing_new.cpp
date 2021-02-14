@@ -257,11 +257,11 @@ public:
 	        int mean = l + (r - l) / 2; 
 	  
 	        // Check if x is present at mid 
-	        if (sparse_critics[user].getIndices()[mean] == x) 
+	        if (sparse_critics[user%4].getIndices()[mean] == x) 
 	            return mean; 
 	  
 	        // If x greater, ignore left half 
-	        if (sparse_critics[user].getIndices()[mean] < x) 
+	        if (sparse_critics[user%4].getIndices()[mean] < x) 
 	            l = mean + 1; 
 	  
 	        // If x is smaller, ignore right half 

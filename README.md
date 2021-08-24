@@ -1,4 +1,4 @@
-# HLS_Project
+# Itemrank Algorithm
  
 <!-- PROJECT LOGO -->
 <br />
@@ -13,10 +13,10 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-The repository includes the implementation of itemrank algorithm, defined in this [paper](https://www.aaai.org/Papers/IJCAI/2007/IJCAI07-444.pdf).   
+The repository includes the implementation of Itemrank algorithm, defined in this [paper](https://www.aaai.org/Papers/IJCAI/2007/IJCAI07-444.pdf).   
 The project was implemented as part of the High Level Synthesis course in the 9th semester of ECE Democritus University of Thrace supervised by George Dimitrakopoulos.
-The code was optimized in order to achieve the best hardware performance possible.
-  
+
+The code was optimized in order to achieve the best hardware performance possible.  
 This implementation is optimized taking advantage of :
 - the heap data structure   
 - 128-bit sparse representation 
@@ -28,7 +28,7 @@ This implementation is optimized taking advantage of :
 To get started make sure you have installed all the prerequisites in your computer.
 
 ### Prerequisites
-To compile this implementation of Itemrank you will need the libraries included in this [libraries' folder](https://github.com/emmanouilidisk/HLS_Project/tree/main/libraries) and a C++ compiler.
+To compile this implementation of Itemrank you will need the libraries included in the [libraries' folder](https://github.com/emmanouilidisk/HLS_Project/tree/main/libraries) and a C++ compiler.
 
 
 <!-- CONTRIBUTING -->
